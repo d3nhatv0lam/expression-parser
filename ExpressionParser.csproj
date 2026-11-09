@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
@@ -7,6 +7,12 @@
         <UseWindowsForms>true</UseWindowsForms>
         <ImplicitUsings>enable</ImplicitUsings>
     </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Remove="ExpressionParser.Tests\**" />
+        <EmbeddedResource Remove="ExpressionParser.Tests\**" />
+        <None Remove="ExpressionParser.Tests\**" />
+    </ItemGroup>
 
     <ItemGroup>
       <Compile Update="Views\MainView.cs">
