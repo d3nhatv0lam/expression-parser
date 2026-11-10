@@ -66,12 +66,12 @@ public static class ExpressionCalculator
         }
         return result;
     }
-
-    /// <summary>
-    /// E -> T + E | T - E | T 
-    /// T -> F * T | F / T | F 
-    /// F -> (E) | id | -F | +F
-    /// </summary>
+    
+    // E -> T E'
+    // E' -> + T E' | - T E' | ε
+    // T  -> F T'
+    // T' -> * F T' | / F T' | ε
+    // F  -> (E) | id | -F | +F
     private sealed class Parser
     {
         private readonly string _input;
@@ -188,7 +188,7 @@ public static class ExpressionCalculator
             if (_currentPos >= _input.Length)
             {
                 int errorPos = _currentPos > 0 ? _currentPos - 1 : 0;
-                throw new ExpressionParseException(errorPos, "Biểu thức kết thúc bất ngờ, thiếu toán hạng.");
+                throw new ExpressionParseException(errorPos, "Biểu thức thiếu toán hạng.");
             }
 
             char c = _input[_currentPos];
