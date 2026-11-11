@@ -16,10 +16,10 @@ static class Program
         ApplicationConfiguration.Initialize();
         
         MainView view = new MainView();
-        MainPresenter presenter = new MainPresenter(view);
+        MainViewPresenter viewPresenter = new MainViewPresenter(view);
         
         Application.Run(view);
         
-        presenter.Dispose();
+        viewPresenter.Dispose();
     }
 }

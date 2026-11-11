@@ -3,11 +3,11 @@ using ExpressionParser.Models;
 
 namespace ExpressionParser.Presenters;
 
-public class MainPresenter : IDisposable
+public class MainViewPresenter : IDisposable
 {
     private readonly IMainView _view;
 
-    public MainPresenter(IMainView view)
+    public MainViewPresenter(IMainView view)
     {
         _view = view ?? throw new ArgumentNullException(nameof(view));
         _view.CalculateRequested += OnCalculateRequested;
