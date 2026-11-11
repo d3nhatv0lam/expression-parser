@@ -19,7 +19,7 @@ public partial class MainView : Form, IMainView
     {
         btnCalculate.Click += (s, e) =>
         {
-            TriggerCalculation(txtExpression.Text.Trim(), isKeypad: false);
+            TriggerCalculation(txtExpression.Text, isKeypad: false);
         };
 
         txtExpression.KeyDown += (s, e) =>
@@ -27,7 +27,7 @@ public partial class MainView : Form, IMainView
             if (e.KeyCode == Keys.Enter)
             {
                 e.SuppressKeyPress = true;
-                TriggerCalculation(txtExpression.Text.Trim(), isKeypad: false);
+                TriggerCalculation(txtExpression.Text, isKeypad: false);
             }
         };
 

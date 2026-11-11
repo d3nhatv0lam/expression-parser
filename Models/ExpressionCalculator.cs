@@ -12,27 +12,11 @@ public static class ExpressionCalculator
         }
 
         var parser = new Parser(expression);
-        double result = parser.CheckExpression();
-
-        parser.SkipWhitespace();
-        if (parser.CurrentPos < expression.Length)
-        {
-            char leftover = expression[parser.CurrentPos];
-            if (leftover == ')')
-            {
-                throw new ExpressionParseException(parser.CurrentPos, "Thừa dấu ngoặc đóng ')' không có dấu mở tương ứng.");
-            }
-            throw new ExpressionParseException(parser.CurrentPos, $"Ký tự dư thừa không hợp lệ '{leftover}'.");
-        }
-
+        var result = parser.CheckExpression();
+        parser.EnsureEndOfInput("Biểu thức");
         return result;
     }
-
-    public static double CheckExpression(string expression)
-    {
-        return Calculate(expression);
-    }
-
+    
     public static double CheckTerm(string expression)
     {
         if (expression == null || string.IsNullOrWhiteSpace(expression))
@@ -42,11 +26,7 @@ public static class ExpressionCalculator
 
         var parser = new Parser(expression);
         double result = parser.CheckTerm();
-        parser.SkipWhitespace();
-        if (parser.CurrentPos < expression.Length)
-        {
-            throw new ExpressionParseException(parser.CurrentPos, $"Ký tự dư thừa sau Term: '{expression[parser.CurrentPos]}'.");
-        }
+        parser.EnsureEndOfInput("Số hạng");
         return result;
     }
 
@@ -59,11 +39,7 @@ public static class ExpressionCalculator
 
         var parser = new Parser(expression);
         double result = parser.CheckFactor();
-        parser.SkipWhitespace();
-        if (parser.CurrentPos < expression.Length)
-        {
-            throw new ExpressionParseException(parser.CurrentPos, $"Ký tự dư thừa sau Factor: '{expression[parser.CurrentPos]}'.");
-        }
+        parser.EnsureEndOfInput("Thừa số");
         return result;
     }
     
@@ -76,20 +52,37 @@ public static class ExpressionCalculator
     {
         private readonly string _input;
         private int _currentPos;
-
-        public int CurrentPos => _currentPos;
-
+        
         public Parser(string input)
         {
             _input = input;
             _currentPos = 0;
         }
 
-        public void SkipWhitespace()
+        private void SkipWhitespace()
         {
             while (_currentPos < _input.Length && char.IsWhiteSpace(_input[_currentPos]))
             {
                 _currentPos++;
+            }
+        }
+        
+        public void EnsureEndOfInput(string? context = null)
+        {
+            SkipWhitespace();
+            if (_currentPos < _input.Length)
+            {
+                var leftover = _input[_currentPos];
+                if (leftover == ')')
+                {
+                    throw new ExpressionParseException(_currentPos, "Thừa dấu ngoặc đóng ')' không có dấu mở tương ứng.");
+                }
+                
+                var msg = context != null 
+                    ? $"Ký tự dư thừa sau {context}: '{leftover}'."
+                    : $"Ký tự dư thừa không hợp lệ '{leftover}'.";
+                
+                throw new ExpressionParseException(_currentPos, msg);
             }
         }
 
@@ -198,6 +191,12 @@ public static class ExpressionCalculator
             {
                 int openParenPos = _currentPos;
                 _currentPos++;
+                
+                SkipWhitespace();
+                if (_currentPos < _input.Length && _input[_currentPos] == ')')
+                {
+                    throw new ExpressionParseException(openParenPos, "Cặp ngoặc rỗng '()' không chứa biểu thức.");
+                }
 
                 double result = CheckExpression();
 
@@ -210,8 +209,7 @@ public static class ExpressionCalculator
 
                 throw new ExpressionParseException(openParenPos, "Thiếu dấu ngoặc đóng ')' tương ứng.");
             }
-
-
+            
             if (c == '-')
             {
                 _currentPos++;

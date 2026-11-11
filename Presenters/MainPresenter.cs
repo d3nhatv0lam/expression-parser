@@ -15,8 +15,7 @@ public class MainPresenter : IDisposable
 
     private void OnCalculateRequested(object? sender, ExpressionCalculateEventArgs e)
     {
-        string expr = e.Expression;
-        Console.WriteLine($"[INFO] Yêu cầu tính toán biểu thức: '{expr}'");
+        var expr = e.Expression;
 
         if (string.IsNullOrWhiteSpace(expr))
         {
@@ -26,33 +25,39 @@ public class MainPresenter : IDisposable
 
         try
         {
-            double result = ExpressionCalculator.Calculate(expr);
-            string formattedResult = result.ToString("G15", CultureInfo.InvariantCulture);
+            var result = ExpressionCalculator.Calculate(expr);
+            var formattedResult = result.ToString("G15", CultureInfo.InvariantCulture);
 
-            Console.WriteLine($"[SUCCESS] Biểu thức '{expr}' = {formattedResult}");
             _view.ShowCalculationSuccess(formattedResult);
         }
-        catch (DivideByZeroException ex)
+        catch (DivideByZeroException)
         {
-            Console.WriteLine($"[ERROR DivideByZero] {ex.Message}");
-            Console.WriteLine(ex.StackTrace);
-
             _view.ShowCalculationError("Lỗi toán học: Không thể chia cho 0!", null);
         }
         catch (ExpressionParseException ex)
         {
-            Console.WriteLine($"[ERROR Syntax at pos {ex.Position}] {ex.Message}");
-            Console.WriteLine(ex.StackTrace);
+            var nonSpacePos = CountNonWhitespaceCharacters(expr, ex.Position);
+            var locationText = nonSpacePos > 0 ? $"tại ký tự thứ {nonSpacePos}: " : "";
 
-            _view.ShowCalculationError($"Lỗi cú pháp tại vị trí {ex.Position + 1}: {ex.ExpressionMessage}", ex.Position);
+            _view.ShowCalculationError($"Lỗi cú pháp {locationText}{ex.ExpressionMessage}", ex.Position);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine($"[ERROR Unexpected] {ex.Message}");
-            Console.WriteLine(ex.StackTrace);
-
             _view.ShowCalculationError("Biểu thức không hợp lệ. Vui lòng kiểm tra lại!", null);
         }
+    }
+
+    private static int CountNonWhitespaceCharacters(string text, int upToIndex)
+    {
+        int count = 0;
+        for (int i = 0; i <= upToIndex && i < text.Length; i++)
+        {
+            if (!char.IsWhiteSpace(text[i]))
+            {
+                count++;
+            }
+        }
+        return count;
     }
 
     public void Dispose()

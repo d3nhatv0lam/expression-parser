@@ -73,11 +73,38 @@ public class ExpressionCalculatorTests
         Assert.Equal(5.0, ExpressionCalculator.CheckTerm("20 / 4"), precision: 6);
     }
 
+    [Theory]
+    [InlineData("2 * 3 * 4 / 2", 12.0)]
+    [InlineData("100 / 2 / 2 * 3", 75.0)]
+    public void CheckTerm_MultipleFactors_ReturnsCorrectResult(string term, double expected)
+    {
+        double actual = ExpressionCalculator.CheckTerm(term);
+        Assert.Equal(expected, actual, precision: 6);
+    }
+
+    [Theory]
+    [InlineData("2 * 3 + 4", "Ký tự dư thừa sau Số hạng")]
+    [InlineData("2 * 3 - 1", "Ký tự dư thừa sau Số hạng")]
+    public void CheckTerm_WithTrailingCharacters_ThrowsExpressionParseException(string term, string expectedError)
+    {
+        var ex = Assert.Throws<ExpressionParseException>(() => ExpressionCalculator.CheckTerm(term));
+        Assert.Contains(expectedError, ex.Message);
+    }
+
     [Fact]
     public void CheckFactor_ValidFactor_ReturnsCorrectResult()
     {
         Assert.Equal(42.0, ExpressionCalculator.CheckFactor("42"), precision: 6);
         Assert.Equal(7.0, ExpressionCalculator.CheckFactor("(3 + 4)"), precision: 6);
+    }
+
+    [Theory]
+    [InlineData("(2 + 3) * 4", "Ký tự dư thừa sau Thừa số")]
+    [InlineData("5 + 2", "Ký tự dư thừa sau Thừa số")]
+    public void CheckFactor_WithTrailingCharacters_ThrowsExpressionParseException(string factor, string expectedError)
+    {
+        var ex = Assert.Throws<ExpressionParseException>(() => ExpressionCalculator.CheckFactor(factor));
+        Assert.Contains(expectedError, ex.Message);
     }
 
     [Theory]
@@ -92,12 +119,25 @@ public class ExpressionCalculatorTests
     [Theory]
     // Ngoại lệ lỗi cú pháp
     [InlineData("", "Biểu thức rỗng", 0)]
+    [InlineData("   \t  ", "Biểu thức rỗng", 0)]
     [InlineData("5 +", "ở cuối biểu thức thiếu toán hạng", 2)]
     [InlineData("2 * / 3", "không thể đứng ở vị trí này", 4)]
+    [InlineData("* 5", "không thể đứng ở vị trí này", 0)]
+    [InlineData("/ 10", "không thể đứng ở vị trí này", 0)]
     [InlineData("(2 + 3", "Thiếu dấu ngoặc đóng", 0)]
     [InlineData("2 + 3)", "Thừa dấu ngoặc đóng", 5)]
     [InlineData("2 + a", "Ký tự không hợp lệ", 4)]
     [InlineData("3.14.15", "nhiều hơn một dấu chấm", 4)]
+    [InlineData(".", "không có chữ số đi kèm", 0)]
+    [InlineData("2 + .", "không có chữ số đi kèm", 4)]
+    [InlineData("()", "Cặp ngoặc rỗng '()' không chứa biểu thức", 0)]
+    [InlineData("(   )", "Cặp ngoặc rỗng '()' không chứa biểu thức", 0)]
+    [InlineData("2 * () + 3", "Cặp ngoặc rỗng '()' không chứa biểu thức", 4)]
+    [InlineData("(2 * () + 3)", "Cặp ngoặc rỗng '()' không chứa biểu thức", 5)]
+    [InlineData("2 + 3 abc", "Ký tự dư thừa sau Biểu thức", 6)]
+    [InlineData("2 + 3 4", "Ký tự dư thừa sau Biểu thức", 6)]
+    [InlineData("((2 + 3)", "Thiếu dấu ngoặc đóng", 0)]
+    [InlineData("((2 + 3)))", "Thừa dấu ngoặc đóng", 9)]
     public void Calculate_InvalidSyntax_ThrowsExpressionParseException(string expression, string expectedErrorMessagePart, int expectedPosition)
     {
         var ex = Assert.Throws<ExpressionParseException>(() => ExpressionCalculator.Calculate(expression));
